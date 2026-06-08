@@ -1,0 +1,335 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id                           String                        @id @default(cuid())
+  email                        String                        @unique
+  name                         String?
+  password                     String?
+  phone                        String?                       @unique
+  isVerified                   Boolean                       @default(false)
+  otps                         Otp[]
+  onboardingDetails            OnboardingYourDetails?
+  onboardingPlan               OnboardingSelectPlan?
+  onboardingStarter            OnboardingStarterPlan?
+  onboardingPremium            OnboardingPremiumPlan?
+  onboardingGlobal             OnboardingGlobalPlan?
+  onboardingBusinessDetails    OnboardingBusinessDetails?
+  onboardingConsultation       OnboardingConsultation?
+  onboardingKyc                OnboardingKyc?
+  onboardingManageBusiness     OnboardingManageBusiness?
+  onboardingManageBusinessInfo OnboardingManageBusinessInfo?
+  onboardingCategory           OnboardingCategory?
+  payments                     Payment[]
+  emailVerified                DateTime?
+  image                        String?
+  accounts                     Account[]
+  sessions                     Session[]
+  role                         Role                          @default(USER)
+  createdAt                    DateTime                      @default(now())
+  updatedAt                    DateTime                      @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model OnboardingYourDetails {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  fullName     String?
+  email        String?
+  phoneNumber  String?
+  country      String?
+  timezone     String?
+  businessType String?
+  businessName String?
+  website      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model OnboardingManageBusiness {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id])
+  fullName              String?
+  email                 String?
+  phoneNumber           String?
+  country               String?
+  timezone              String?
+  hasRegisteredCompany  Boolean?
+  businessName          String?
+  countryOfRegistration String?
+  state                 String?
+  businessCategory      String?
+  otherBusinessCategory String?
+  lookingFor            String?
+  otherLookingFor       String?
+  businessDescription   String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model OnboardingManageBusinessInfo {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+  businessType String?
+  description  String?
+  documentUrls String[] // Storing URLs of uploaded documents
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model OnboardingCategory {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id])
+  category         String?
+  categories       String[]
+  selectedServices String[]
+  serviceStates    Json?
+  totalAmount      Float?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model OnboardingSelectPlan {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id])
+  plan             String?
+  state            String?
+  bookConsultation Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Otp {
+  id        String   @id @default(cuid())
+  code      String
+  email     String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model OnboardingStarterPlan {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  addOnServices String[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model OnboardingPremiumPlan {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  addOnServices String[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model OnboardingGlobalPlan {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id])
+  exportingToUS        String?
+  productCategory      String?
+  quantity             String?
+  dimensions           String?
+  frequency            String?
+  approxOrders         String?
+  shipmentWeight       String?
+  logisticsPartner     String?
+  logisticsPartnerName String?
+  returnHandling       String?
+  timeline             String?
+  boxLength            String?
+  boxWidth             String?
+  boxHeight            String?
+  avgWeight            String?
+  numProductsPerBox    String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model OnboardingBusinessDetails {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id])
+  entityType       String?
+  stateOfFormation String?
+  businessName     String?
+  businessAddress  String?
+  city             String?
+  state            String?
+  zipCode          String?
+  country          String?
+  numMembers       Int?
+  numShareholders  Int?
+  regAgentType     String?
+  regAgentName     String?
+  regAgentAddress  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model OnboardingConsultation {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  user           User      @relation(fields: [userId], references: [id])
+  date           String?
+  time           String?
+  timezone       String?
+  scheduledAt    DateTime?
+  status         String    @default("booked") // e.g., "booked", "completed", "cancelled"
+  reminder30Sent Boolean   @default(false)
+  reminder10Sent Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Payment {
+  id                    String   @id @default(cuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id])
+  stripePaymentIntentId String   @unique
+  amount                Int // In cents
+  currency              String   @default("usd")
+  status                String // e.g., "succeeded", "pending", "failed"
+  planType              String?
+  billingAddress        String?
+  city                  String?
+  zipCode               String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model OnboardingKyc {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id])
+  passportUrl          String?
+  panCardUrl           String?
+  drivingLicenseUrl    String?
+  addressProofUrl      String?
+  aadhaarCardUrl       String?
+  utilityBillUrl       String?
+  einLetterUrl         String?
+  linkedInProfile      String?
+  status               String   @default("pending") // Overall status (compatibility fallback)
+  passportStatus       String   @default("pending")
+  panCardStatus        String   @default("pending")
+  drivingLicenseStatus String   @default("pending")
+  addressProofStatus   String   @default("pending")
+  aadhaarCardStatus    String   @default("pending")
+  utilityBillStatus    String   @default("pending")
+  einLetterStatus      String   @default("pending")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String   @db.Text
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contacts")
+}
+
+model Package {
+  id              String   @id @default(cuid())
+  name            String
+  price           String
+  state           String?
+  stateFee        String?
+  supportedStates String[]
+  category        String? // e.g., "Start your new business", "Existing your business"
+  status          String   @default("Active")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Service {
+  id           String   @id @default(cuid())
+  name         String
+  type         String // One-time, Monthly, Yearly, Consultation
+  price        String
+  availability String   @default("All States")
+  businessFlow String? // "Start your new business" or "Manage your existing business"
+  planType     String? // "Starter", "Premium", "Global", "All Plans"
+  category     String? // Scaling, Payments, Compliances, Add-ons
+  description  String?
+  status       String   @default("Active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
